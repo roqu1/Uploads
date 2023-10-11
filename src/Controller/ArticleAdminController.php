@@ -76,7 +76,13 @@ class ArticleAdminController extends BaseController
         /** @var UploadedFile $uploadedFile */
         $uploadedFile = $request->files->get('image');
         $destination = $this->getParameter('kernel.project_dir') . '/public/uploads'; // kernel.project_dir is the path to the project
-        dd($uploadedFile->move($destination));
+
+        $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME); // has been set to have only the name without the type
+
+
+        $newFilename = $originalFilename . '-' . uniqid() . '.' . $uploadedFile->guessExtension(); // here we set uniqid and type of the file
+
+        dd($uploadedFile->move($destination, $newFilename));
     }
 
     /**
