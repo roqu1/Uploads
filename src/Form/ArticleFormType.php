@@ -9,6 +9,7 @@ use App\Repository\UserRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
@@ -50,8 +51,10 @@ class ArticleFormType extends AbstractType
                 ],
                 'required' => false,
             ])
-        ;
-
+            ->add('imageFile', FileType::class, [
+                'mapped' => false,
+                'required' => false,
+            ]);
         if ($options['include_published_at']) {
             $builder->add('publishedAt', null, [
                 'widget' => 'single_text',
@@ -76,7 +79,7 @@ class ArticleFormType extends AbstractType
 
         $builder->get('location')->addEventListener(
             FormEvents::POST_SUBMIT,
-            function(FormEvent $event) {
+            function (FormEvent $event) {
                 $form = $event->getForm();
                 $this->setupSpecificLocationNameField(
                     $form->getParent(),

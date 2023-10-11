@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Form\ArticleFormType;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Gedmo\Sluggable\Util\Urlizer;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -53,6 +54,18 @@ class ArticleAdminController extends BaseController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            /**@var UploadedFile $uploadedFile */
+            $uploadedFile = $form['imageFile']->getData();
+
+            if ($uploadedFile) {
+                $destination = $this->getParameter('kernel.project_dir') . '/public/uploads/article_image'; // kernel.project_dir is the path to the project
+                $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME); // has been set to have only the name without the type
+                $newFilename = Urlizer::urlize($originalFilename) . '-' . uniqid() . '.' . $uploadedFile->guessExtension(); // here we set uniqid and type of the file
+                $uploadedFile->move($destination, $newFilename);
+                $article->setImageFilename($newFilename);
+            }
+
+
             $em->persist($article);
             $em->flush();
 
@@ -68,22 +81,7 @@ class ArticleAdminController extends BaseController
         ]);
     }
 
-    /**
-     * @Route("/admin/upload/test", name="upload_test")
-     */
-    public function temporaryUploadAction(Request $request)
-    {
-        /** @var UploadedFile $uploadedFile */
-        $uploadedFile = $request->files->get('image');
-        $destination = $this->getParameter('kernel.project_dir') . '/public/uploads'; // kernel.project_dir is the path to the project
 
-        $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME); // has been set to have only the name without the type
-
-
-        $newFilename = $originalFilename . '-' . uniqid() . '.' . $uploadedFile->guessExtension(); // here we set uniqid and type of the file
-
-        dd($uploadedFile->move($destination, $newFilename));
-    }
 
     /**
      * @Route("/admin/article/location-select", name="admin_article_location_select")
