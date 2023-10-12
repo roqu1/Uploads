@@ -30,7 +30,7 @@ class ArticleAdminController extends BaseController
             /** @var Article $article */
             $article = $form->getData();
 
-            /**@var UploadedFile $uploadedFile */
+            /** @var UploadedFile $uploadedFile */
             $uploadedFile = $form['imageFile']->getData();
 
             if ($uploadedFile) {
