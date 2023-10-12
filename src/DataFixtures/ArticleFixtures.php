@@ -5,8 +5,11 @@ namespace App\DataFixtures;
 use App\Entity\Article;
 use App\Entity\Comment;
 use App\Entity\Tag;
+use App\Service\UploadHelper;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\File\File;
 
 class ArticleFixtures extends BaseFixture implements DependentFixtureInterface
 {
@@ -22,12 +25,19 @@ class ArticleFixtures extends BaseFixture implements DependentFixtureInterface
         'lightspeed.png',
     ];
 
+    private $uploaderHelper;
+    public function __construct(UploadHelper $uploadHelper)
+    {
+        $this->uploaderHelper = $uploadHelper;
+    }
+
     protected function loadData(ObjectManager $manager)
     {
-        $this->createMany(10, 'main_articles', function($count) use ($manager) {
+        $this->createMany(10, 'main_articles', function ($count) use ($manager) {
             $article = new Article();
             $article->setTitle($this->faker->randomElement(self::$articleTitles))
-                ->setContent(<<<EOF
+                ->setContent(
+                    <<<EOF
 Spicy **jalapeno bacon** ipsum dolor amet veniam shank in dolore. Ham hock nisi landjaeger cow,
 lorem proident [beef ribs](https://baconipsum.com/) aute enim veniam ut cillum pork chuck picanha. Dolore reprehenderit
 labore minim pork belly spare ribs cupim short loin in. Elit exercitation eiusmod dolore cow
@@ -45,17 +55,18 @@ strip steak pork belly aliquip capicola officia. Labore deserunt esse chicken lo
 cow est ribeye adipisicing. Pig hamburger pork belly enim. Do porchetta minim capicola irure pancetta chuck
 fugiat.
 EOF
-            );
+                );
 
             // publish most articles
             if ($this->faker->boolean(70)) {
                 $article->setPublishedAt($this->faker->dateTimeBetween('-100 days', '-1 days'));
             }
 
+            $imageFilename = $this->fakeUploadImage();
+
             $article->setAuthor($this->getRandomReference('main_users'))
                 ->setHeartCount($this->faker->numberBetween(5, 100))
-                ->setImageFilename($this->faker->randomElement(self::$articleImages))
-            ;
+                ->setImageFilename($imageFilename);
 
             $tags = $this->getRandomReferences('main_tags', $this->faker->numberBetween(0, 5));
             foreach ($tags as $tag) {
@@ -74,5 +85,15 @@ EOF
             TagFixture::class,
             UserFixture::class,
         ];
+    }
+
+    public function fakeUploadImage(): string
+    {
+        $randomImage = $this->faker->randomElement(self::$articleImages);
+        $fs = new Filesystem();
+        $targetPath = sys_get_temp_dir() . '/' . $randomImage;
+        $fs->copy(__DIR__ . '/images/' . $randomImage, $targetPath, true);
+        return $this->uploaderHelper
+            ->uploadArticleImage(new File($targetPath));
     }
 }
