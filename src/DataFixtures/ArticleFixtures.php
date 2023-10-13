@@ -3,8 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Article;
-use App\Entity\Comment;
-use App\Entity\Tag;
 use App\Service\UploadHelper;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -26,9 +24,10 @@ class ArticleFixtures extends BaseFixture implements DependentFixtureInterface
     ];
 
     private $uploaderHelper;
-    public function __construct(UploadHelper $uploadHelper)
+
+    public function __construct(UploadHelper $uploaderHelper)
     {
-        $this->uploaderHelper = $uploadHelper;
+        $this->uploaderHelper = $uploaderHelper;
     }
 
     protected function loadData(ObjectManager $manager)
@@ -86,17 +85,15 @@ EOF
             UserFixture::class,
         ];
     }
-    // this function is used to fake upload images
-    public function fakeUploadImage(): string
-    {
-        // copy a random image from the fixtures
-        $randomImage = $this->faker->randomElement(self::$articleImages);
-        // we declare a new Filesystem object
-        $fs = new Filesystem();
 
+    private function fakeUploadImage(): string
+    {
+        $randomImage = $this->faker->randomElement(self::$articleImages);
+        $fs = new Filesystem();
         $targetPath = sys_get_temp_dir() . '/' . $randomImage;
         $fs->copy(__DIR__ . '/images/' . $randomImage, $targetPath, true);
+
         return $this->uploaderHelper
-            ->uploadArticleImage(new File($targetPath));
+            ->uploadArticleImage(new File($targetPath), null);
     }
 }
