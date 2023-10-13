@@ -86,11 +86,14 @@ EOF
             UserFixture::class,
         ];
     }
-
+    // this function is used to fake upload images
     public function fakeUploadImage(): string
     {
+        // copy a random image from the fixtures
         $randomImage = $this->faker->randomElement(self::$articleImages);
+        // we declare a new Filesystem object
         $fs = new Filesystem();
+
         $targetPath = sys_get_temp_dir() . '/' . $randomImage;
         $fs->copy(__DIR__ . '/images/' . $randomImage, $targetPath, true);
         return $this->uploaderHelper
