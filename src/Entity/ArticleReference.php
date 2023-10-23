@@ -37,6 +37,11 @@ class ArticleReference
      */
     private $mimeType;
 
+    public function __construct(Article $article)
+    {
+        $this->article = $article;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -47,12 +52,7 @@ class ArticleReference
         return $this->article;
     }
 
-    public function setArticle(?Article $article): self
-    {
-        $this->article = $article;
 
-        return $this;
-    }
 
     public function getFilename(): ?string
     {
