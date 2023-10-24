@@ -90,4 +90,10 @@ class UploadHelper
 
         return $newFilename;
     }
+    /**
+     * @return resource
+     */
+    public function readStream(string $path, bool $isPublic)
+    {
+    }
 }
