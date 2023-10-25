@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Service\UploadHelper;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -88,5 +89,10 @@ class ArticleReference
         $this->mimeType = $mimeType;
 
         return $this;
+    }
+
+    public function getFilePath(): string
+    {
+        return UploadHelper::ARTICLE_REFERENCE . '/' . $this->getFilename();
     }
 }

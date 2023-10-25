@@ -12,6 +12,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -79,6 +81,24 @@ class ArticleReferenceAdminController extends BaseController
         $article = $reference->getArticle();
 
         $this->denyAccessUnlessGranted('MANAGE', $article);
-        dd($reference);
+
+        $response = new StreamedResponse(function () use ($reference, $uploaderHelper) { // Создается потоковый ответ для передачи файла пользователю
+            $outputStream = fopen('php://output', 'wb'); // Открывается поток на вывод, где 'wb' означает запись в двоичном формате
+
+            $fileStream = $uploaderHelper->readStream($reference->getFilePath(), false);  // Читается поток файла. Параметр false указывает, что файл не должен быть заблокирован при чтении
+
+            stream_copy_to_stream($fileStream, $outputStream); // Копируется поток файла в поток вывода
+        });
+
+        $response->headers->set('Content-Type', $reference->getMimeType()); // Устанавливается заголовок 'Content-Type' с MIME-типом файла
+
+        $disposition = HeaderUtils::makeDisposition(
+            HeaderUtils::DISPOSITION_ATTACHMENT,
+            $reference->getOriginalFilename()
+        ); // Создается заголовок 'Content-Disposition' для указания браузеру открыть диалоговое окно сохранения файла с оригинальным именем файла
+
+        $response->headers->set('Content-Disposition', $disposition); // Устанавливается заголовок 'Content-Disposition'
+
+        return $response;
     }
 }
