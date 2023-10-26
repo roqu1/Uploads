@@ -33,6 +33,10 @@ $(document).ready(function () {
 class ReferenceList {
   constructor($element) {
     this.$element = $element;
+    this.sortable = Sortable.create(this.$element[0], {
+      handle: ".drag-handle",
+      animation: 150,
+    });
     this.references = [];
     this.render();
 
@@ -92,7 +96,8 @@ class ReferenceList {
     const itemsHtml = this.references.map((reference) => {
       return `
 <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${reference.id}">
-    <input type="text" value="${reference.originalFilename}" class="form-control js-edit-filename" style="width: auto;">
+    <span class="drag-handle fa fa-reorder"></span>
+<input type="text" value="${reference.originalFilename}" class="form-control js-edit-filename" style="width: auto;">
 
     <span>
         <a href="/admin/article/references/${reference.id}/download" class="btn btn-link btn-sm"><span class="fa fa-download" style="vertical-align: middle"></span></a>
