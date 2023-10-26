@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\ConstraintViolation;
@@ -130,7 +131,7 @@ class ArticleReferenceAdminController extends BaseController
     /**
      * @Route("/admin/article/references/{id}", methods={"PUT"}, name="admin_article_update_reference")
      */
-    public function updateArticleReference(ArticleReference $reference, Request $request, EntityManagerInterface $entityManger, Serializer $serializer)
+    public function updateArticleReference(ArticleReference $reference, Request $request, EntityManagerInterface $entityManger, ValidatorInterface $validator,  SerializerInterface $serializer)
     {
         $article = $reference->getArticle();
         $this->denyAccessUnlessGranted('MANAGE', $article);
@@ -144,6 +145,11 @@ class ArticleReferenceAdminController extends BaseController
                 'groups' => ['input']
             ]
         );
+
+        $violations = $validator->validate($reference);
+        if ($violations->count() > 0) {
+            return $this->json($violations, 400);
+        }
 
         $entityManger->persist($reference);
         $entityManger->flush();
