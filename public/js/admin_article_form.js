@@ -36,6 +36,13 @@ class ReferenceList {
     this.sortable = Sortable.create(this.$element[0], {
       handle: ".drag-handle",
       animation: 150,
+      onEnd: () => {
+        $.ajax({
+          url: this.$element.data("url") + "/reorder",
+          method: "POST",
+          data: JSON.stringify(this.sortable.toArray()),
+        });
+      },
     });
     this.references = [];
     this.render();

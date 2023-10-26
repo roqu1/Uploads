@@ -12,6 +12,7 @@ use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use App\Validator\ContainsAlphanumeric;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
@@ -89,6 +90,7 @@ class Article
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ArticleReference", mappedBy="article")
+     * @ORM\OrderBy({"position" = "ASC"})
      */
     private $articleReferences;
 

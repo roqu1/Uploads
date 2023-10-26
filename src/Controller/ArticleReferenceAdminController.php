@@ -163,4 +163,31 @@ class ArticleReferenceAdminController extends BaseController
             ]
         );
     }
+
+    /**
+     * @Route("/admin/article/{id}/references/reorder", methods={"POST"}, name="admin_article_reorder_references")
+     */
+    public function reorderArticleReferences(Article $article, Request $request, EntityManagerInterface $entityManger)
+    {
+        $orderedIds = json_decode($request->getContent(), true); // from "{3,1,2}" to [3,1,2]
+        if ($orderedIds === null) {
+            return $this->json(['detail' => 'Invalid body'], 400);
+        }
+        $orderedIds = array_flip($orderedIds); // the ids are the indexes now 3->0, 1-> 2, 2->1
+        foreach ($article->getArticleReferences() as $reference) {
+            $reference->setPosition($orderedIds[$reference->getId()]); // the position is the index of the id
+        }
+
+        $entityManger->persist($reference);
+        $entityManger->flush();
+
+        return $this->json(
+            $reference,
+            200,
+            [],
+            [
+                'groups' => ['main']
+            ]
+        );
+    }
 }
